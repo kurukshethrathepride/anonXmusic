@@ -13,10 +13,9 @@ from anony.helpers import buttons, utils
 @lang.language()
 async def _help(_, m: types.Message):
     await m.reply_text(
-        text=m.lang["help_menu"],
-        reply_markup=buttons.help_markup(m.lang),
-        quote=True,
-    )
+    text=m.lang["help_menu"],
+    reply_markup=buttons.help_markup(m.lang),
+)
 
 
 @app.on_message(filters.command(["start"]))
@@ -40,7 +39,6 @@ async def start(_, message: types.Message):
         photo=config.START_IMG,
         caption=_text,
         reply_markup=key,
-        quote=not private,
     )
 
     if private:
@@ -62,12 +60,11 @@ async def settings(_, message: types.Message):
     cmd_delete = await db.get_cmd_delete(message.chat.id)
     _language = await db.get_lang(message.chat.id)
     await message.reply_text(
-        text=message.lang["start_settings"].format(message.chat.title),
-        reply_markup=buttons.settings_markup(
-            message.lang, admin_only, cmd_delete, _language, message.chat.id
-        ),
-        quote=True,
-    )
+    text=message.lang["start_settings"].format(message.chat.title),
+    reply_markup=buttons.settings_markup(
+        message.lang, admin_only, cmd_delete, _language, message.chat.id
+    ),
+)
 
 
 @app.on_message(filters.new_chat_members, group=7)
