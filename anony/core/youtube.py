@@ -1,7 +1,3 @@
-# Copyright (c) 2025 AnonymousX1025
-# Licensed under the MIT License.
-# This file is part of AnonXMusic
-
 
 import os
 import re
@@ -194,15 +190,26 @@ base_opts = {
                 "format": "bestaudio[ext=webm][acodec=opus]",
             }
 
-        def _download():
+                def _download():
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 try:
                     ydl.download([url])
-                except (yt_dlp.utils.DownloadError, yt_dlp.utils.ExtractorError):
+                except (
+                    yt_dlp.utils.DownloadError,
+                    yt_dlp.utils.ExtractorError,
+                ):
                     return None
                 except Exception as ex:
                     logger.warning("Download failed: %s", ex)
                     return None
+
             return filename
 
-        return await asyncio.to_thread(_download)
+        try:
+            return await asyncio.to_thread(_download)
+        finally:
+            if cookie_temp:
+                try:
+                    os.remove(cookie_temp)
+                except OSError:
+                    pass
