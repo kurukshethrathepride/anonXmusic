@@ -10,7 +10,8 @@ import random
 import asyncio
 import aiohttp
 from pathlib import Path
-
+import shutil
+import tempfile
 from py_yt import Playlist, VideosSearch
 
 from anony import logger
@@ -150,6 +151,24 @@ class YouTube:
             return filename
 
         cookie = self.get_cookies()
+        cookie_temp = None
+
+        if cookie:
+    try:
+        with tempfile.NamedTemporaryFile(
+            prefix="youtube-cookies-",
+            suffix=".txt",
+            delete=False,
+        ) as temp:
+            cookie_temp = temp.name
+
+        shutil.copyfile(cookie, cookie_temp)
+        cookie = cookie_temp
+    except OSError as exc:
+        logger.warning("Could not prepare writable cookies file: %s", exc)
+        cookie = None
+
+base_opts = {
         base_opts = {
             "outtmpl": "downloads/%(id)s.%(ext)s",
             "quiet": True,
