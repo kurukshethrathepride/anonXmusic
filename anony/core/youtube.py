@@ -45,18 +45,39 @@ class YouTube:
             r"|playlist\?list=PL[A-Za-z0-9_-]+|[A-Za-z0-9_-]{11}))\S*"
         )
 
+    
     def get_cookies(self):
         if not self.checked:
-            for file in os.listdir(self.cookie_dir):
-                if file.endswith(".txt"):
-                    self.cookies.append(f"{self.cookie_dir}/{file}")
+            # Read the private Render Secret File first.
+            secret_file = os.getenv(
+                "YOUTUBE_COOKIES_FILE",
+                "/etc/secrets/youtube-cookies.txt",
+            )
+
+            if os.path.isfile(secret_file):
+                self.cookies.append(secret_file)
+                logger.info("Private YouTube cookies file found.")
+
+            # Also support local cookie files, if present.
+            if os.path.isdir(self.cookie_dir):
+                for file in os.listdir(self.cookie_dir):
+                    path = os.path.join(self.cookie_dir, file)
+                    if file.endswith(".txt") and os.path.isfile(path):
+                        if path not in self.cookies:
+                            self.cookies.append(path)
+
             self.checked = True
+
         if not self.cookies:
             if not self.warned:
                 self.warned = True
-                logger.warning("Cookies are missing; downloads might fail.")
+                logger.warning(
+                    "YouTube cookies are missing; downloads might fail."
+                )
             return None
+
         return random.choice(self.cookies)
+
 
     async def save_cookies(self, urls: list[str]) -> None:
         logger.info("Saving cookies from urls...")
