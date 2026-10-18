@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: abhi66
+    name: anonxmusic
     env: python
     plan: free
 
-    buildCommand: buildCommand: "apt-get update && apt-get install -y ffmpeg unzip curl ca-certificates && curl -fsSL https://deno.land/install.sh | sh && install -m 0755 /opt/render/.deno/bin/deno /usr/local/bin/deno && pip install -r requirements.txt"
+    buildCommand: "apt-get update && apt-get install -y ffmpeg unzip curl ca-certificates && curl -fsSL https://deno.land/install.sh | sh && install -m 0755 /opt/render/.deno/bin/deno /usr/local/bin/deno && pip install -r requirements.txt"
     startCommand: bash start
 
     envVars:
