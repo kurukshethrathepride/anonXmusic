@@ -138,6 +138,7 @@ class YouTube:
             pass
         return tracks
 
+    
     async def download(self, video_id: str, video: bool = False) -> str | None:
         url = self.base + video_id
         ext = "mp4" if video else "webm"
@@ -149,22 +150,25 @@ class YouTube:
         cookie = self.get_cookies()
         cookie_temp = None
 
+        # Copy the read-only Render Secret File to a writable temporary file.
         if cookie:
-    try:
-        with tempfile.NamedTemporaryFile(
-            prefix="youtube-cookies-",
-            suffix=".txt",
-            delete=False,
-        ) as temp:
-            cookie_temp = temp.name
+            try:
+                with tempfile.NamedTemporaryFile(
+                    prefix="youtube-cookies-",
+                    suffix=".txt",
+                    delete=False,
+                ) as temp:
+                    cookie_temp = temp.name
 
-        shutil.copyfile(cookie, cookie_temp)
-        cookie = cookie_temp
-    except OSError as exc:
-        logger.warning("Could not prepare writable cookies file: %s", exc)
-        cookie = None
+                shutil.copyfile(cookie, cookie_temp)
+                cookie = cookie_temp
 
-base_opts = {
+            except OSError as exc:
+                logger.warning(
+                    "Could not prepare writable cookies file: %s", exc
+                )
+                cookie = None
+
         base_opts = {
             "outtmpl": "downloads/%(id)s.%(ext)s",
             "quiet": True,
@@ -181,7 +185,10 @@ base_opts = {
         if video:
             ydl_opts = {
                 **base_opts,
-                "format": "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio)",
+                "format": (
+                    "(bestvideo[height<=?720][width<=?1280][ext=mp4])"
+                    "+(bestaudio)"
+                ),
                 "merge_output_format": "mp4",
             }
         else:
@@ -190,20 +197,22 @@ base_opts = {
                 "format": "bestaudio[ext=webm][acodec=opus]",
             }
 
-                def _download():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                try:
+        def _download():
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
-                except (
-                    yt_dlp.utils.DownloadError,
-                    yt_dlp.utils.ExtractorError,
-                ):
-                    return None
-                except Exception as ex:
-                    logger.warning("Download failed: %s", ex)
-                    return None
+                return filename
 
-            return filename
+            except (
+                yt_dlp.utils.DownloadError,
+                yt_dlp.utils.ExtractorError,
+            ) as exc:
+                logger.warning("YouTube extraction failed: %s", exc)
+                return None
+
+            except Exception as exc:
+                logger.warning("Download failed: %s", exc)
+                return None
 
         try:
             return await asyncio.to_thread(_download)
